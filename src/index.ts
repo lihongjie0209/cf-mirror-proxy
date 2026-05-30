@@ -3,6 +3,10 @@ export interface Env {}
 interface MirrorConfig {
   upstream: string; // Full HTTP/HTTPS base URL (may include a subpath)
   description: string;
+  // When the upstream root is a JavaScript SPA (not a browseable listing),
+  // list known sub-directories here. The root path will render a static
+  // HTML directory page instead of proxying the unusable JS page.
+  subdirs?: string[];
 }
 
 // Mirror names match TUNA's tunasync.json "name" field exactly (case-sensitive).
@@ -185,6 +189,7 @@ const MIRRORS: Record<string, MirrorConfig> = {
   mongodb: {
     upstream: 'https://repo.mongodb.org',
     description: 'MongoDB',
+    subdirs: ['apt/', 'yum/', 'zypper/'],
   },
   mysql: {
     upstream: 'https://repo.mysql.com',
@@ -728,6 +733,37 @@ function handleIndex(): Response {
   });
 }
 
+// Render a simple static directory listing for mirrors whose upstream root
+// is a JavaScript SPA and cannot be meaningfully proxied as-is.
+function handleSubdirIndex(mirrorName: string, config: MirrorConfig): Response {
+  const rows = (config.subdirs ?? [])
+    .map(d => `<tr><td><a href="/${mirrorName}/${d}">${d}</a></td></tr>`)
+    .join('');
+  const html = `<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <title>${mirrorName} - lihongjie.cn Mirror</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:800px;margin:40px auto;padding:0 20px;color:#333}
+    h1{font-size:1.4em}
+    table{border-collapse:collapse;width:100%}
+    td{padding:8px 12px;border-bottom:1px solid #eee}
+    a{color:#0366d6;text-decoration:none}
+    a:hover{text-decoration:underline}
+    .back{margin-bottom:16px;font-size:.9em}
+  </style>
+</head>
+<body>
+  <div class="back"><a href="/">← 返回镜像列表</a></div>
+  <h1>Index of /${mirrorName}/</h1>
+  <p>${config.description} — <a href="${config.upstream}" target="_blank">上游：${config.upstream}</a></p>
+  <table><tbody>${rows}</tbody></table>
+</body>
+</html>`;
+  return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
+
 export default {
   async fetch(request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -765,6 +801,12 @@ export default {
 
     // Build upstream path: strip /<mirrorName>, prepend basePath
     const subPath = pathname.slice(mirrorName.length + 1); // preserves leading '/'
+
+    // For mirrors whose root is a JS SPA, serve a static directory listing.
+    if (config.subdirs && (subPath === '' || subPath === '/')) {
+      return handleSubdirIndex(mirrorName, config);
+    }
+
     const targetPath = basePath + (subPath || '/');
     const targetUrl = origin + targetPath + url.search;
 
