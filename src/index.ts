@@ -1,76 +1,346 @@
 export interface Env {}
 
 interface MirrorConfig {
-  upstream: string;
+  upstream: string; // Full HTTP/HTTPS base URL (may include a subpath)
   description: string;
-  homepage?: string;
 }
 
+// Mirror names match TUNA's tunasync.json "name" field exactly (case-sensitive).
+// Upstream is the HTTP base URL; our proxy strips the mirror-name prefix and
+// prepends the upstream basePath automatically.
 const MIRRORS: Record<string, MirrorConfig> = {
+  // ── Ubuntu ───────────────────────────────────────────────────────────────
   ubuntu: {
     upstream: 'http://archive.ubuntu.com/ubuntu',
-    description: 'Ubuntu',
-    homepage: 'https://www.ubuntu.com',
+    description: 'Ubuntu (amd64/i386)',
   },
   'ubuntu-ports': {
     upstream: 'http://ports.ubuntu.com/ubuntu-ports',
-    description: 'Ubuntu Ports (ARM/RISC-V)',
-    homepage: 'https://www.ubuntu.com',
+    description: 'Ubuntu Ports (ARM / RISC-V)',
   },
+  'ubuntu-releases': {
+    upstream: 'http://releases.ubuntu.com',
+    description: 'Ubuntu Releases (ISO)',
+  },
+  'ubuntu-cloud-images': {
+    upstream: 'https://cloud-images.ubuntu.com',
+    description: 'Ubuntu Cloud Images',
+  },
+  ubuntukylin: {
+    upstream: 'http://archive.ubuntukylin.com/ubuntukylin',
+    description: 'Ubuntu Kylin',
+  },
+
+  // ── Debian ───────────────────────────────────────────────────────────────
   debian: {
     upstream: 'http://deb.debian.org/debian',
     description: 'Debian',
-    homepage: 'https://www.debian.org',
   },
   'debian-security': {
     upstream: 'http://security.debian.org/debian-security',
     description: 'Debian Security',
-    homepage: 'https://www.debian.org',
   },
-  alpine: {
-    upstream: 'http://dl-cdn.alpinelinux.org/alpine',
-    description: 'Alpine Linux',
-    homepage: 'https://www.alpinelinux.org',
+  'debian-cd': {
+    upstream: 'https://cdimage.debian.org/debian-cd',
+    description: 'Debian CD/DVD Images',
   },
-  centos: {
-    upstream: 'http://vault.centos.org/centos',
-    description: 'CentOS (Vault)',
-    homepage: 'https://centos.org',
+  'debian-elts': {
+    upstream: 'https://deb.freexian.com/extended-lts',
+    description: 'Debian ELTS (Freexian Extended LTS)',
+  },
+  xanmod: {
+    upstream: 'https://deb.xanmod.org',
+    description: 'XanMod Kernel',
+  },
+
+  // ── Raspberry Pi / Raspbian ──────────────────────────────────────────────
+  raspbian: {
+    upstream: 'http://raspbian.raspberrypi.org/raspbian',
+    description: 'Raspbian',
+  },
+  raspberrypi: {
+    upstream: 'http://archive.raspberrypi.org/debian',
+    description: 'Raspberry Pi OS packages',
+  },
+  'raspberry-pi-os-images': {
+    upstream: 'https://downloads.raspberrypi.org',
+    description: 'Raspberry Pi OS Images',
+  },
+
+  // ── Kali Linux ───────────────────────────────────────────────────────────
+  kali: {
+    upstream: 'http://kali.download/kali',
+    description: 'Kali Linux',
+  },
+
+  // ── Other Debian-based ───────────────────────────────────────────────────
+  linuxmint: {
+    upstream: 'https://packages.linuxmint.com',
+    description: 'Linux Mint',
+  },
+  deepin: {
+    upstream: 'https://community-packages.deepin.com/deepin',
+    description: 'Deepin',
+  },
+  neurodebian: {
+    upstream: 'http://neuro.debian.net',
+    description: 'NeuroDebian',
+  },
+  OpenMediaVault: {
+    upstream: 'https://packages.openmediavault.org/public',
+    description: 'OpenMediaVault',
+  },
+  termux: {
+    upstream: 'https://packages-cf.termux.dev',
+    description: 'Termux',
+  },
+
+  // ── CentOS / Fedora ───────────────────────────────────────────────────────
+  'centos-vault': {
+    upstream: 'https://vault.centos.org',
+    description: 'CentOS Vault (legacy releases)',
+  },
+  'centos-stream': {
+    upstream: 'https://mirror.stream.centos.org',
+    description: 'CentOS Stream',
+  },
+  fedora: {
+    upstream: 'https://dl.fedoraproject.org/pub/fedora/linux',
+    description: 'Fedora Linux',
+  },
+  'fedora-altarch': {
+    upstream: 'https://dl.fedoraproject.org/pub/fedora-secondary',
+    description: 'Fedora Alternate Architectures',
   },
   epel: {
     upstream: 'https://dl.fedoraproject.org/pub/epel',
-    description: 'EPEL (Fedora Extra Packages)',
-    homepage: 'https://fedoraproject.org/wiki/EPEL',
+    description: 'EPEL (Extra Packages for Enterprise Linux)',
   },
+  elrepo: {
+    upstream: 'https://elrepo.org/linux',
+    description: 'ELRepo',
+  },
+  rpmfusion: {
+    upstream: 'https://download1.rpmfusion.org/rpmfusion',
+    description: 'RPM Fusion',
+  },
+
+  // ── Rocky / Alma (not in TUNA, added for completeness) ──────────────────
   rockylinux: {
     upstream: 'https://dl.rockylinux.org/pub/rocky',
     description: 'Rocky Linux',
-    homepage: 'https://rockylinux.org',
   },
   almalinux: {
     upstream: 'https://repo.almalinux.org/almalinux',
     description: 'AlmaLinux',
-    homepage: 'https://almalinux.org',
   },
-  nginx: {
-    upstream: 'http://nginx.org/packages',
-    description: 'NGINX',
-    homepage: 'https://nginx.org',
+
+  // ── openSUSE ─────────────────────────────────────────────────────────────
+  opensuse: {
+    upstream: 'https://download.opensuse.org',
+    description: 'openSUSE',
   },
-  nodejs: {
-    upstream: 'https://nodejs.org/dist',
-    description: 'Node.js',
-    homepage: 'https://nodejs.org',
+
+  // ── openEuler ────────────────────────────────────────────────────────────
+  openeuler: {
+    upstream: 'https://repo.openeuler.org',
+    description: 'openEuler',
   },
-  python: {
-    upstream: 'https://www.python.org/ftp/python',
-    description: 'Python',
-    homepage: 'https://www.python.org',
+
+  // ── Alpine Linux ─────────────────────────────────────────────────────────
+  alpine: {
+    upstream: 'http://dl-cdn.alpinelinux.org/alpine',
+    description: 'Alpine Linux',
+  },
+
+  // ── Arch Linux ───────────────────────────────────────────────────────────
+  archlinux: {
+    upstream: 'https://geo.mirror.pkgbuild.com',
+    description: 'Arch Linux',
+  },
+  archlinuxcn: {
+    upstream: 'https://repo.archlinuxcn.org',
+    description: 'Arch Linux CN',
+  },
+  archlinuxarm: {
+    upstream: 'http://os.archlinuxarm.org',
+    description: 'Arch Linux ARM',
+  },
+  msys2: {
+    upstream: 'https://repo.msys2.org/builds',
+    description: 'MSYS2 (Windows)',
+  },
+
+  // ── Armbian / OpenWrt ────────────────────────────────────────────────────
+  armbian: {
+    upstream: 'https://apt.armbian.com',
+    description: 'Armbian',
+  },
+  openwrt: {
+    upstream: 'https://downloads.openwrt.org',
+    description: 'OpenWrt',
+  },
+
+  // ── Databases ────────────────────────────────────────────────────────────
+  mongodb: {
+    upstream: 'https://repo.mongodb.org',
+    description: 'MongoDB',
+  },
+  mysql: {
+    upstream: 'https://repo.mysql.com',
+    description: 'MySQL',
+  },
+  mariadb: {
+    upstream: 'https://ftp.osuosl.org/pub/mariadb',
+    description: 'MariaDB',
+  },
+  influxdata: {
+    upstream: 'https://repos.influxdata.com',
+    description: 'InfluxData (InfluxDB / Telegraf)',
+  },
+
+  // ── Docker / Kubernetes / DevOps ─────────────────────────────────────────
+  'docker-ce': {
+    upstream: 'https://download.docker.com',
+    description: 'Docker CE',
+  },
+  proxmox: {
+    upstream: 'http://download.proxmox.com',
+    description: 'Proxmox VE',
   },
   ceph: {
     upstream: 'https://download.ceph.com/ceph',
     description: 'Ceph',
-    homepage: 'https://ceph.io',
+  },
+  zabbix: {
+    upstream: 'https://repo.zabbix.com/zabbix',
+    description: 'Zabbix',
+  },
+
+  // ── Monitoring / Observability ───────────────────────────────────────────
+  grafana: {
+    upstream: 'https://apt.grafana.com',
+    description: 'Grafana',
+  },
+  elasticstack: {
+    upstream: 'https://artifacts.elastic.co',
+    description: 'Elastic Stack',
+  },
+
+  // ── Languages / Runtimes ─────────────────────────────────────────────────
+  python: {
+    upstream: 'https://www.python.org/ftp/python',
+    description: 'Python',
+  },
+  'nodejs-release': {
+    upstream: 'https://nodejs.org/dist',
+    description: 'Node.js',
+  },
+  Adoptium: {
+    upstream: 'https://packages.adoptium.net/artifactory',
+    description: 'Eclipse Adoptium (JDK / JRE)',
+  },
+  'erlang-solutions': {
+    upstream: 'https://binaries2.erlang-solutions.com',
+    description: 'Erlang Solutions',
+  },
+
+  // ── CI / CD ──────────────────────────────────────────────────────────────
+  jenkins: {
+    upstream: 'https://pkg.jenkins.io',
+    description: 'Jenkins',
+  },
+  'gitlab-ce': {
+    upstream: 'https://packages.gitlab.com/gitlab/gitlab-ce',
+    description: 'GitLab CE',
+  },
+  'gitlab-runner': {
+    upstream: 'https://packages.gitlab.com/runner/gitlab-runner',
+    description: 'GitLab Runner',
+  },
+
+  // ── Web servers / System tools ───────────────────────────────────────────
+  nginx: {
+    upstream: 'http://nginx.org/packages',
+    description: 'NGINX',
+  },
+  virtualbox: {
+    upstream: 'http://download.virtualbox.org/virtualbox',
+    description: 'VirtualBox',
+  },
+  'wine-builds': {
+    upstream: 'https://dl.winehq.org/wine-builds',
+    description: 'WineHQ',
+  },
+  'llvm-apt': {
+    upstream: 'https://apt.llvm.org',
+    description: 'LLVM / Clang',
+  },
+  mozilla: {
+    upstream: 'https://packages.mozilla.org',
+    description: 'Mozilla (Firefox / Thunderbird)',
+  },
+  'bazel-apt': {
+    upstream: 'https://storage.googleapis.com/bazel-apt',
+    description: 'Bazel',
+  },
+  'ros2': {
+    upstream: 'http://packages.ros.org/ros2',
+    description: 'ROS 2',
+  },
+  rudder: {
+    upstream: 'https://repository.rudder.io',
+    description: 'Rudder',
+  },
+
+  // ── GNU / Open source ────────────────────────────────────────────────────
+  gnu: {
+    upstream: 'https://ftp.gnu.org/gnu',
+    description: 'GNU Software',
+  },
+  kernel: {
+    upstream: 'https://www.kernel.org/pub/linux/kernel',
+    description: 'Linux Kernel',
+  },
+  apache: {
+    upstream: 'https://downloads.apache.org',
+    description: 'Apache Software Foundation',
+  },
+  eclipse: {
+    upstream: 'https://download.eclipse.org',
+    description: 'Eclipse IDE',
+  },
+  qt: {
+    upstream: 'https://download.qt.io',
+    description: 'Qt',
+  },
+  libreoffice: {
+    upstream: 'https://download.documentfoundation.org/libreoffice',
+    description: 'LibreOffice',
+  },
+  blender: {
+    upstream: 'https://download.blender.org',
+    description: 'Blender',
+  },
+  CTAN: {
+    upstream: 'https://mirrors.ctan.org',
+    description: 'CTAN (TeX / LaTeX)',
+  },
+  'videolan-ftp': {
+    upstream: 'https://download.videolan.org/pub',
+    description: 'VideoLAN (VLC)',
+  },
+  wireshark: {
+    upstream: 'https://www.wireshark.org/download',
+    description: 'Wireshark',
+  },
+  putty: {
+    upstream: 'https://the.earth.li/~sgtatham/putty/latest',
+    description: 'PuTTY',
+  },
+  postmarketOS: {
+    upstream: 'https://mirror.postmarketos.org/postmarketos',
+    description: 'postmarketOS',
   },
 };
 
@@ -218,14 +488,91 @@ function copyHeaders(
   return out;
 }
 
+const MIRROR_CATEGORIES: Array<{ title: string; names: string[] }> = [
+  {
+    title: 'Ubuntu',
+    names: ['ubuntu', 'ubuntu-ports', 'ubuntu-releases', 'ubuntu-cloud-images', 'ubuntukylin'],
+  },
+  {
+    title: 'Debian & 衍生发行版',
+    names: [
+      'debian', 'debian-security', 'debian-cd', 'debian-elts', 'xanmod',
+      'raspbian', 'raspberrypi', 'raspberry-pi-os-images',
+      'kali', 'linuxmint', 'deepin', 'neurodebian', 'OpenMediaVault', 'termux',
+    ],
+  },
+  {
+    title: 'RPM 系发行版',
+    names: [
+      'centos-vault', 'centos-stream', 'fedora', 'fedora-altarch',
+      'epel', 'elrepo', 'rpmfusion', 'rockylinux', 'almalinux',
+    ],
+  },
+  {
+    title: '其他发行版',
+    names: [
+      'opensuse', 'openeuler', 'alpine', 'archlinux', 'archlinuxcn', 'archlinuxarm',
+      'msys2', 'armbian', 'openwrt', 'postmarketOS',
+    ],
+  },
+  {
+    title: '数据库',
+    names: ['mongodb', 'mysql', 'mariadb', 'influxdata'],
+  },
+  {
+    title: 'DevOps / 容器',
+    names: ['docker-ce', 'proxmox', 'ceph', 'zabbix', 'grafana', 'elasticstack'],
+  },
+  {
+    title: '编程语言 / 运行时',
+    names: ['python', 'nodejs-release', 'Adoptium', 'erlang-solutions'],
+  },
+  {
+    title: 'CI/CD',
+    names: ['jenkins', 'gitlab-ce', 'gitlab-runner'],
+  },
+  {
+    title: '系统工具 / 应用',
+    names: [
+      'nginx', 'virtualbox', 'wine-builds', 'llvm-apt', 'mozilla',
+      'bazel-apt', 'ros2', 'rudder',
+    ],
+  },
+  {
+    title: '开源软件 / 桌面应用',
+    names: [
+      'gnu', 'kernel', 'apache', 'eclipse', 'qt', 'libreoffice',
+      'blender', 'CTAN', 'videolan-ftp', 'wireshark', 'putty',
+    ],
+  },
+];
+
 function handleIndex(): Response {
-  const rows = Object.entries(MIRRORS)
-    .map(
-      ([name, cfg]) =>
-        `<tr><td><a href="/${name}/">${name}</a></td><td>${cfg.description}</td>` +
-        `<td><code>/${name}/</code></td></tr>`,
-    )
-    .join('\n');
+  const allCategorized = new Set(MIRROR_CATEGORIES.flatMap(c => c.names));
+  const uncategorized = Object.keys(MIRRORS).filter(n => !allCategorized.has(n));
+
+  const sectionHtml = (category: { title: string; names: string[] }) => {
+    const rows = category.names
+      .filter(n => MIRRORS[n])
+      .map(
+        name =>
+          `<tr><td><a href="/${name}/">${name}</a></td>` +
+          `<td>${MIRRORS[name].description}</td></tr>`,
+      )
+      .join('');
+    if (!rows) return '';
+    return `<h2>${category.title}</h2><table>
+<thead><tr><th>镜像名</th><th>描述</th></tr></thead>
+<tbody>${rows}</tbody></table>`;
+  };
+
+  const sectionsHtml = MIRROR_CATEGORIES.map(sectionHtml).join('\n');
+  const extraRows = uncategorized
+    .map(n => `<tr><td><a href="/${n}/">${n}</a></td><td>${MIRRORS[n].description}</td></tr>`)
+    .join('');
+  const extraSection = extraRows
+    ? `<h2>其他</h2><table><thead><tr><th>镜像名</th><th>描述</th></tr></thead><tbody>${extraRows}</tbody></table>`
+    : '';
 
   const html = `<!DOCTYPE html>
 <html lang="zh">
@@ -235,11 +582,12 @@ function handleIndex(): Response {
   <title>lihongjie.cn Mirror</title>
   <style>
     *{box-sizing:border-box}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:900px;margin:40px auto;padding:0 20px;color:#333}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:960px;margin:40px auto;padding:0 20px;color:#333}
     h1{font-size:1.8em;margin-bottom:4px}
+    h2{font-size:1.1em;margin:28px 0 8px;color:#555;border-left:4px solid #0366d6;padding-left:10px}
     p{color:#666;margin-top:4px}
-    table{border-collapse:collapse;width:100%;margin-top:20px}
-    th,td{text-align:left;padding:10px 14px;border-bottom:1px solid #eee}
+    table{border-collapse:collapse;width:100%;margin-bottom:8px}
+    th,td{text-align:left;padding:8px 12px;border-bottom:1px solid #eee}
     th{background:#f8f8f8;font-weight:600}
     a{color:#0366d6;text-decoration:none}
     a:hover{text-decoration:underline}
@@ -249,11 +597,11 @@ function handleIndex(): Response {
 </head>
 <body>
   <h1>🪞 lihongjie.cn Mirror</h1>
-  <p>开源软件镜像代理站 · Open source software mirror proxy</p>
-  <table>
-    <thead><tr><th>镜像名</th><th>描述</th><th>路径</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
+  <p>开源软件镜像代理站，命名规范与 <a href="https://mirrors.tuna.tsinghua.edu.cn">TUNA</a> 保持一致。<br>
+     访问方式：<code>https://mirror.lihongjie.cn/&lt;镜像名&gt;/</code>（国际）&nbsp; &nbsp;
+     <code>https://mirror.cn.lihongjie.cn/&lt;镜像名&gt;/</code>（国内优选）</p>
+  ${sectionsHtml}
+  ${extraSection}
   <footer>Powered by Cloudflare Workers · <a href="https://github.com/lihongjie0209/cf-mirror-proxy">Source</a></footer>
 </body>
 </html>`;
