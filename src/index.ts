@@ -342,6 +342,76 @@ const MIRRORS: Record<string, MirrorConfig> = {
     upstream: 'https://mirror.postmarketos.org/postmarketos',
     description: 'postmarketOS',
   },
+
+  // ── Java / JVM ────────────────────────────────────────────────────────────
+  maven: {
+    upstream: 'https://repo1.maven.org/maven2',
+    description: 'Maven Central',
+  },
+  'maven-google': {
+    upstream: 'https://maven.google.com',
+    description: 'Google Maven Repository',
+  },
+  'gradle-plugins': {
+    upstream: 'https://plugins.gradle.org/m2',
+    description: 'Gradle Plugin Portal (Maven2)',
+  },
+  'gradle-distributions': {
+    upstream: 'https://services.gradle.org/distributions',
+    description: 'Gradle Distributions',
+  },
+  'spring-release': {
+    upstream: 'https://repo.spring.io/release',
+    description: 'Spring Release Repository',
+  },
+  'spring-milestone': {
+    upstream: 'https://repo.spring.io/milestone',
+    description: 'Spring Milestone Repository',
+  },
+
+  // ── Python ────────────────────────────────────────────────────────────────
+  pypi: {
+    upstream: 'https://pypi.org/simple',
+    description: 'PyPI Simple Index',
+  },
+  'pypi-packages': {
+    upstream: 'https://files.pythonhosted.org/packages',
+    description: 'PyPI Package Files',
+  },
+
+  // ── Conda ─────────────────────────────────────────────────────────────────
+  anaconda: {
+    upstream: 'https://repo.anaconda.com/pkgs',
+    description: 'Anaconda Packages',
+  },
+  'conda-forge': {
+    upstream: 'https://conda.anaconda.org/conda-forge',
+    description: 'Conda Forge',
+  },
+
+  // ── Rust ──────────────────────────────────────────────────────────────────
+  'crates-io': {
+    upstream: 'https://static.crates.io/crates',
+    description: 'crates.io (Rust/Cargo) Static Files',
+  },
+
+  // ── Ruby ──────────────────────────────────────────────────────────────────
+  rubygems: {
+    upstream: 'https://rubygems.org/gems',
+    description: 'RubyGems',
+  },
+
+  // ── PHP ───────────────────────────────────────────────────────────────────
+  'composer-pkgist': {
+    upstream: 'https://repo.packagist.org',
+    description: 'Packagist (Composer)',
+  },
+
+  // ── R ─────────────────────────────────────────────────────────────────────
+  cran: {
+    upstream: 'https://cran.r-project.org',
+    description: 'CRAN (R)',
+  },
 };
 
 // Headers from the client that should NOT be forwarded upstream
@@ -526,6 +596,21 @@ const MIRROR_CATEGORIES: Array<{ title: string; names: string[] }> = [
   {
     title: '编程语言 / 运行时',
     names: ['python', 'nodejs-release', 'Adoptium', 'erlang-solutions'],
+  },
+  {
+    title: 'Java / JVM 包仓库',
+    names: [
+      'maven', 'maven-google', 'gradle-plugins', 'gradle-distributions',
+      'spring-release', 'spring-milestone',
+    ],
+  },
+  {
+    title: 'Python 包仓库',
+    names: ['pypi', 'pypi-packages', 'anaconda', 'conda-forge'],
+  },
+  {
+    title: '其他语言包仓库',
+    names: ['crates-io', 'rubygems', 'composer-pkgist', 'cran'],
   },
   {
     title: 'CI/CD',
