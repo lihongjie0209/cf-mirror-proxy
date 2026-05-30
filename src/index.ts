@@ -75,7 +75,7 @@ const MIRRORS: Record<string, MirrorConfig> = {
 
   // ── Other Debian-based ───────────────────────────────────────────────────
   linuxmint: {
-    upstream: 'https://packages.linuxmint.com',
+    upstream: 'http://packages.linuxmint.com',
     description: 'Linux Mint',
   },
   deepin: {
