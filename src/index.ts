@@ -412,6 +412,20 @@ const MIRRORS: Record<string, MirrorConfig> = {
     upstream: 'https://cran.r-project.org',
     description: 'CRAN (R)',
   },
+
+  // ── PostgreSQL ────────────────────────────────────────────────────────────
+  postgresql: {
+    upstream: 'https://ftp.postgresql.org/pub',
+    description: 'PostgreSQL',
+  },
+  'pgdg-apt': {
+    upstream: 'https://apt.postgresql.org/pub/repos/apt',
+    description: 'PostgreSQL APT (PGDG)',
+  },
+  'pgdg-yum': {
+    upstream: 'https://download.postgresql.org/pub/repos/yum',
+    description: 'PostgreSQL YUM (PGDG)',
+  },
 };
 
 // Headers from the client that should NOT be forwarded upstream
@@ -446,6 +460,11 @@ const TRANSFORMED_DROP_HEADERS = new Set([
   'content-encoding',
   'accept-ranges',
 ]);
+
+// Apache httpd serves standard UI resources at root-level virtual paths
+// (e.g. via `Alias /icons/ /usr/share/apache2/icons/`). These are outside
+// the mirror's basePath but must still be proxied so directory listings render.
+const APACHE_SERVER_PATHS = ['/icons/', '/error/', '/manual/'];
 
 function parseUpstream(upstream: string): { origin: string; basePath: string } {
   const u = new URL(upstream);
@@ -502,7 +521,13 @@ function rewriteAbsPath(path: string, mirrorName: string, basePath: string): str
     return prefix + path.slice(basePath.length);
   }
 
-  // Not under basePath (e.g. /icons/, /styles/) — leave as-is
+  // Apache httpd root-level paths (icons, error pages, etc.) — rewrite through
+  // this mirror even when outside basePath so directory listings render correctly.
+  if (APACHE_SERVER_PATHS.some(p => path.startsWith(p) || path === p.slice(0, -1))) {
+    return prefix + path;
+  }
+
+  // Not under basePath — leave as-is
   return path;
 }
 
@@ -587,7 +612,7 @@ const MIRROR_CATEGORIES: Array<{ title: string; names: string[] }> = [
   },
   {
     title: '数据库',
-    names: ['mongodb', 'mysql', 'mariadb', 'influxdata'],
+    names: ['mongodb', 'mysql', 'mariadb', 'influxdata', 'postgresql', 'pgdg-apt', 'pgdg-yum'],
   },
   {
     title: 'DevOps / 容器',
@@ -749,6 +774,29 @@ export default {
     }
 
     const status = upstreamRes.status;
+
+    // Icon fallback: many upstreams don't serve /icons/ from their document root
+    // (Apache serves them via a server-side Alias, not as regular files).
+    // Fall back to Apache's own icon server so directory listings render.
+    if ((status === 404 || status === 403) && subPath.startsWith('/icons/')) {
+      const iconFile = subPath.slice('/icons/'.length);
+      if (iconFile && !iconFile.includes('/')) {
+        try {
+          const fallback = await fetch(`https://www.apache.org/icons/${iconFile}`, {
+            redirect: 'follow',
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; cf-mirror-proxy/1.0)' },
+          });
+          if (fallback.ok) {
+            return new Response(fallback.body, {
+              status: 200,
+              headers: copyHeaders(fallback.headers),
+            });
+          }
+        } catch (_) {
+          // fall through to original upstream response
+        }
+      }
+    }
 
     // Handle redirects: rewrite Location header
     if (status >= 300 && status < 400) {
