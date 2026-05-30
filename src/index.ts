@@ -527,6 +527,13 @@ function rewriteAbsPath(path: string, mirrorName: string, basePath: string): str
     return prefix + path;
   }
 
+  // Ancestor path: the path is a parent directory of basePath (e.g. Apache
+  // autoindex "Parent Directory" link). Rewrite to mirror root so the browser
+  // doesn't get a "mirror not found" error.
+  if (path.length > 1 && basePath.startsWith(path + '/')) {
+    return prefix + '/';
+  }
+
   // Not under basePath — leave as-is
   return path;
 }
